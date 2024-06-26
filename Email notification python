@@ -1,0 +1,99 @@
+Sure, I'll guide you through the process of using Python to execute a BigQuery SQL query, retrieve the results, and send them via email using the `smtplib` library. I'll also show you how to format the email body to include a good-looking table.
+
+Here's the step-by-step process:
+
+1. **Set up BigQuery credentials**: Ensure you have your Google Cloud credentials set up.
+2. **Execute the BigQuery SQL query**: Use the `google-cloud-bigquery` library to run the query and fetch the results.
+3. **Format the results into an HTML table**.
+4. **Send the email using `smtplib`**: Use the `email` and `smtplib` libraries to send the email with the formatted table.
+
+First, you need to install the necessary libraries:
+```sh
+pip install google-cloud-bigquery
+```
+
+Next, here's the complete Python code to achieve this:
+
+```python
+from google.cloud import bigquery
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# Function to execute BigQuery SQL and return the results
+def execute_bigquery(sql):
+    client = bigquery.Client()
+    query_job = client.query(sql)
+    results = query_job.result()
+    return results
+
+# Function to format BigQuery results into an HTML table
+def format_results_to_html_table(results):
+    html = '<html><body>'
+    html += '<h2>BigQuery Results</h2>'
+    html += '<table border="1" style="border-collapse: collapse; width: 100%;">'
+    html += '<tr>'
+
+    # Table headers
+    for field in results.schema:
+        html += f'<th style="background-color: #f2f2f2; padding: 8px;">{field.name}</th>'
+    html += '</tr>'
+
+    # Table rows
+    for row in results:
+        html += '<tr>'
+        for field in results.schema:
+            html += f'<td style="padding: 8px;">{row[field.name]}</td>'
+        html += '</tr>'
+    
+    html += '</table>'
+    html += '</body></html>'
+    return html
+
+# Function to send an email
+def send_email(subject, to_email, html_content):
+    from_email = "your_email@gmail.com"
+    from_password = "your_password"
+    
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(html_content, 'html'))
+
+    with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        server.starttls()
+        server.login(from_email, from_password)
+        server.sendmail(from_email, to_email, msg.as_string())
+
+# Main script
+def main():
+    sql = "SELECT * FROM `your_project.your_dataset.your_table` LIMIT 10"
+    results = execute_bigquery(sql)
+    html_content = format_results_to_html_table(results)
+    send_email("BigQuery Results", "recipient@example.com", html_content)
+
+if __name__ == "__main__":
+    main()
+```
+
+### Explanation:
+
+1. **Executing the BigQuery SQL**:
+   - The `execute_bigquery` function initializes a BigQuery client and executes the given SQL query.
+   - It then returns the results.
+
+2. **Formatting the results**:
+   - The `format_results_to_html_table` function converts the query results into an HTML table.
+   - It iterates over the schema to create table headers and over the rows to create table cells.
+
+3. **Sending the email**:
+   - The `send_email` function sets up the email with the subject, recipient, and HTML content.
+   - It uses `smtplib` to connect to the Gmail SMTP server, login, and send the email.
+
+### Note:
+- Replace `your_project.your_dataset.your_table` with your actual BigQuery project, dataset, and table names.
+- Replace `"your_email@gmail.com"` and `"your_password"` with your actual email and password. For security reasons, consider using an app password if using Gmail.
+
+This script will send an email containing a well-formatted HTML table with the results of the executed BigQuery SQL query.
