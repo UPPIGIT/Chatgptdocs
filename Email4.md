@@ -1,3 +1,8 @@
+Certainly! Let's enhance the HTML formatting of the table to make it more visually appealing. We'll add styles for the table, headers, and cells, and choose a color scheme that looks good.
+
+### Enhanced Email Utility with Improved Table Formatting
+
+```python
 import logging
 from google.cloud import bigquery
 import smtplib
@@ -175,3 +180,16 @@ if __name__ == "__main__":
         cc_email="cc_recipient@example.com",
         queries=queries
     )
+```
+
+### Explanation of Changes:
+1. **Enhanced Styling**: The HTML email now includes CSS styles for better formatting:
+    - **General Styles**: Improved font and color settings.
+    - **Table Styles**: Enhanced table formatting with alternating row colors, hover effects, and better spacing.
+    - **Header and Body Colors**: Consistent use of colors for headers and table rows to improve readability.
+
+2. **HTML Content**: Combined HTML content into a single string with a `<style>` section in the `<head>` to improve the email's visual appeal.
+
+3. **Explicit SMTP Connection Closure**: Ensured the SMTP connection is closed after sending the email.
+
+By using this version, you should see a more visually appealing and well-formatted email table in your email client.
