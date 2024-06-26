@@ -1,0 +1,70 @@
+from google.cloud import bigquery
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+# Function to execute BigQuery SQL and return the results
+def execute_bigquery(sql):
+    client = bigquery.Client()
+    query_job = client.query(sql)
+    results = query_job.result()
+    return results
+
+# Function to format BigQuery results into an HTML table
+def format_results_to_html_table(results, title):
+    html = f'<h2 style="color: #4CAF50;">{title}</h2>'
+    html += '<table border="1" style="border-collapse: collapse; width: 100%;">'
+    html += '<tr style="background-color: #f2f2f2;">'
+
+    # Table headers
+    for field in results.schema:
+        html += f'<th style="padding: 4px; text-align: left;">{field.name}</th>'
+    html += '</tr>'
+
+    # Table rows
+    for row in results:
+        html += '<tr>'
+        for field in results.schema:
+            html += f'<td style="padding: 4px;">{row[field.name]}</td>'
+        html += '</tr>'
+    
+    html += '</table><br>'
+    return html
+
+# Function to send an email
+def send_email(subject, to_email, html_content):
+    from_email = "your_email@gmail.com"
+    from_password = "your_password"
+    
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = subject
+
+    msg.attach(MIMEText(html_content, 'html'))
+
+    with smtplib.SMTP('smtp.gmail.com', 587) as server:
+        server.starttls()
+        server.login(from_email, from_password)
+        server.sendmail(from_email, to_email, msg.as_string())
+
+# Main script
+def main():
+    queries = {
+        "First Table": "SELECT * FROM `your_project.your_dataset.your_table1` LIMIT 10",
+        "Second Table": "SELECT * FROM `your_project.your_dataset.your_table2` LIMIT 10",
+        # Add more queries here as needed
+    }
+    
+    html_content = "<html><body>"
+    
+    for title, sql in queries.items():
+        results = execute_bigquery(sql)
+        html_content += format_results_to_html_table(results, title)
+    
+    html_content += "</body></html>"
+    
+    send_email("BigQuery Results", "recipient@example.com", html_content)
+
+if __name__ == "__main__":
+    main()
