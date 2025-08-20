@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON File Validator - Offline Version</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .instructions {
+            background: linear-gradient(45deg, #e8f4fd, #d1ecf1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .instructions h3 {
+            margin-top: 0;
+            color: #0c5460;
+        }
+        
+        .upload-area {
+            border: 3px dashed #3498db;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #2980b9;
+            background: linear-gradient(45deg, #e3f2fd, #bbdefb);
+            transform: translateY(-2px);
+        }
+        
+        .upload-area.dragover {
+            border-color: #27ae60;
+            background: linear-gradient(45deg, #e8f5e8, #c8e6c9);
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .success {
+            background: linear-gradient(45deg, #d4edda, #c3e6cb);
+            border: 1px solid #28a745;
+            color: #155724;
+        }
+        
+        .error {
+            background: linear-gradient(45deg, #f8d7da, #f5c6cb);
+            border: 1px solid #dc3545;
+            color: #721c24;
+        }
+        
+        .info {
+            background: linear-gradient(45deg, #d1ecf1, #bee5eb);
+            border: 1px solid #17a2b8;
+            color: #0c5460;
+        }
+        
+        .file-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .info-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+        
+        .info-card h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .info-card p {
+            margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        
+        .error-details {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .error-location {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #ecf0f1;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .download-info {
+            background: linear-gradient(45deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .copy-code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #495057;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 JSON File Validator</h1>
+        
+        <div class="download-info">
+            <h3>📥 How to Save This Tool to Your Laptop:</h3>
+            <ol>
+                <li><strong>Right-click</strong> anywhere on this page</li>
+                <li>Select <strong>"Save As"</strong> or <strong>"Save Page As"</strong></li>
+                <li>Save as <strong>"json_validator.html"</strong> to your Desktop</li>
+                <li><strong>Double-click</strong> the saved file to open it in your browser</li>
+            </ol>
+            <div class="copy-code">
+                <strong>Alternative:</strong> Press Ctrl+S to save, or copy the page source and save it as an HTML file
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>🚀 How to Use:</h3>
+            <ol>
+                <li><strong>Drag & Drop:</strong> Drag your JSON or .gz file onto the upload area below</li>
+                <li><strong>Or Click:</strong> Click the upload area to browse for files</li>
+                <li><strong>Wait:</strong> The tool will automatically process and validate your file</li>
+                <li><strong>Review:</strong> Check the results for any errors or validation info</li>
+            </ol>
+        </div>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-text">📁 Drop your JSON file here or click to browse</div>
+            <div class="upload-hint">Supports .json, .json.gz files | Works offline once downloaded</div>
+            <input type="file" id="fileInput" accept=".json,.gz">
+        </div>
+        
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div id="results" class="results"></div>
+    </div>
+
+    <!-- Inline pako library for gzip decompression -->
+    <script>
+        // Pako library (inline version for offline use)
+        !function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"function"==typeof define&&define.amd?define(["exports"],e):e((t=t||self).pako={})}(this,function(t){"use strict";var e=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)};function a(t){for(var e=t.length;--e>=0;)t[e]=0}var i=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0],n=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],r=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,3,7],s=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];function o(t,e){for(var a=new Array(16),i=0;i<=15;i++)a[i]=0;for(i=1;i<=e;i++)a[t[i]]++;var n=new Array(16);for(n[1]=0,i=1;i<=14;i++)n[i+1]=n[i]+a[i]<<1;for(i=0;i<=e;i++)0!==t[i]&&(t[n[t[i]]++]=i)}function h(t){var e;for(e=0;e<286;e++)t.dyn_ltree[2*e]=0,t.dyn_ltree[2*e+1]=0;for(e=0;e<30;e++)t.dyn_dtree[2*e]=0,t.dyn_dtree[2*e+1]=0;for(e=0;e<19;e++)t.bl_tree[2*e]=0,t.bl_tree[2*e+1]=0;t.dyn_ltree[512]=1,t.opt_len=t.static_len=0,t.last_lit=t.matches=0}function d(t){t.bi_valid>8?function(t,e){t.pending_buf[t.pending++]=255&e,t.pending_buf[t.pending++]=e>>>8&255}(t,t.bi_buf):t.bi_valid>0&&(t.pending_buf[t.pending++]=t.bi_buf),t.bi_buf=0,t.bi_valid=0}function _(t,e,a){d(t),function(t,e,a){t.pending_buf[t.pending++]=a,t.pending_buf[t.pending++]=a>>>8,t.pending_buf[t.pending++]=~a,t.pending_buf[t.pending++]=~a>>>8}(t,0,e),function(t,e,a){var i;for(i=0;i<a;i++)t.pending_buf[t.pending++]=e[i]}(t,t.window,e)}function f(t,e,a,i){var n=2*e,r=2*a;return t[n]<t[r]||t[n]===t[r]&&i[e]<=i[a]}function l(t,e,a){for(var i=t.heap[a],n=a<<1;n<=t.heap_len&&(n<t.heap_len&&f(e,t.heap[n+1],t.heap[n],t.depth)&&n++,!f(e,i,t.heap[n],t.depth));)t.heap[a]=t.heap[n],a=n,n<<=1;t.heap[a]=i}function c(t,e,a){var r,s,o,h,d=0;if(0!==t.last_lit)do{r=t.pending_buf[t.d_buf+2*d]<<8|t.pending_buf[t.d_buf+2*d+1],s=t.pending_buf[t.l_buf+d],d++,0===r?function(t,e,a){t.bi_valid>16-a?(t.bi_buf|=e<<t.bi_valid&65535,function(t,e){t.pending_buf[t.pending++]=255&e,t.pending_buf[t.pending++]=e>>>8&255}(t,t.bi_buf),t.bi_buf=e>>16-t.bi_valid,t.bi_valid+=a-16):(t.bi_buf|=e<<t.bi_valid&65535,t.bi_valid+=a)}(t,s,e[2*s+1]):(o=s-256-1,function(t,e,a){t.bi_valid>16-a?(t.bi_buf|=e<<t.bi_valid&65535,function(t,e){t.pending_buf[t.pending++]=255&e,t.pending_buf[t.pending++]=e>>>8&255}(t,t.bi_buf),t.bi_buf=e>>16-t.bi_valid,t.bi_valid+=a-16):(t.bi_buf|=e<<t.bi_valid&65535,t.bi_valid+=a)}(t,s,e[2*s+1]),h=i[o],function(t,e,a){t.bi_valid>16-a?(t.bi_buf|=e<<t.bi_valid&65535,function(t,e){t.pending_buf[t.pending++]=255&e,t.pending_buf[t.pending++]=e>>>8&255}(t,t.bi_buf),t.bi_buf=e>>16-t.bi_valid,t.bi_valid+=a-16):(t.bi_buf|=e<<t.bi_valid&65535,t.bi_valid+=a)}(t,r-1-i[o],h),function(t,e,a){t.bi_valid>16-a?(t.bi_buf|=e<<t.bi_valid&65535,function(t,e){t.pending_buf[t.pending++]=255&e,t.pending_buf[t.pending++]=e>>>8&255}(t,t.bi_buf),t.bi_buf=e>>16-t.bi_valid,t.bi_valid+=a-16):(t.bi_buf|=e<<t.bi_valid&65535,t.bi_valid+=a)}(t,(r-1&(1<<h)-1)>>>i[o]-h,h-i[o]))}while(d<t.last_lit);function(t,e,a){t.bi_valid>16-a?(t.bi_buf|=e<<t.bi_valid&65535,function(t,e){t.pending_buf[t.pending++]=255&e,t.pending_buf[t.pending++]=e>>>8&255}(t,t.bi_buf),t.bi_buf=e>>16-t.bi_valid,t.bi_valid+=a-16):(t.bi_buf|=e<<t.bi_valid&65535,t.bi_valid+=a)}(t,256,e[513])}function u(t,e){var a,i,n,r=e.dyn_tree,s=e.max_code,h=e.stat_desc.static_tree,d=e.stat_desc.has_stree,_=e.stat_desc.extra_bits,f=e.stat_desc.extra_base,c=e.stat_desc.max_length,u=0;for(a=0;a<=15;a++)t.bl_count[a]=0;for(r[2*t.heap[t.heap_max]+1]=0,i=t.heap_max+1;i<573;i++)(a=r[2*r[2*(n=t.heap[i])+1]+1]+1)>c&&(a=c,u++),r[2*n+1]=a,n>s||(t.bl_count[a]++,0,n>=f&&(_[n-f]),0);if(0!==u){do{for(a=c-1;0===t.bl_count[a];)a--;t.bl_count[a]--,t.bl_count[a+1]+=2,t.bl_count[c]--,u-=2}while(u>0);for(a=c;0!==a;a--)for(n=t.bl_count[a];0!==n;)(i=t.heap[--i])>s||(r[2*i+1]!==a&&(t.opt_len+=(a-r[2*i+1])*r[2*i],r[2*i+1]=a),n--)}}function w(t,e,a){var i,n,r=new Array(16),s=0;for(i=1;i<=15;i++)r[i]=s=s+a[i-1]<<1;for(n=0;n<=e;n++){var o=t[2*n+1];0!==o&&(t[2*n]=function(t,e){var a=0;do{a|=1&t,t>>>=1,a<<=1}while(--e>0);return a>>>1}(r[o]++,o))}}function m(t,e,a){var i,n,r,s,o,h,d=0;for(s=0;s<=15;s++)t.bl_count[s]=0;for(t.heap[t.heap_max].dl=0,i=t.heap_max+1;i<573;i++)(n=t.heap[i]).dl=t.heap[n.dad].dl+1,n.dl>a&&(n.dl=a,d++),t.bl_count[n.dl]++,n.fc<=e||(t.opt_len+=n.dl*n.freq,t.static_len+=n.freq*t.static_tree[n.fc].dl);if(0!==d){do{for(r=a-1;0===t.bl_count[r];)r--;t.bl_count[r]--,t.bl_count[r+1]+=2,t.bl_count[a]--,d-=2}while(d>0);for(r=a;0!==r;r--)for(o=t.bl_count[r];0!==o;)(s=t.heap[--i]).fc>e||s.dl!==r&&(t.opt_len+=(r-s.dl)*s.freq,s.dl=r),o--;h=0;for(s=0;s<=e;s++)0!==t.freq[s]&&(t.heap[++h].fc=s,t.heap[h].freq=t.freq[s],t.heap[h].dad=t.heap[h].dl=0);for(t.heap_len=h,t.heap_max=h,i=h>>>1;i>=1;i--)l(t,t.heap,i);n=e+1;do{i=t.heap[1],t.heap[1]=t.heap[t.heap_len--],l(t,t.heap,1),r=t.heap[1],t.heap[--t.heap_max]=i,t.heap[--t.heap_max]=r,t.heap[1].freq=i.freq+r.freq,t.heap[1].dad=t.heap[1].dl=0,i.dad=r.dad=t.heap[1],t.heap[1].fc=n++,l(t,t.heap,1)}while(t.heap_len>=2);t.heap[--t.heap_max]=t.heap[1],function(t,e){var a,i,n,r,s,o,h=e.dyn_tree,d=e.max_code,_=e.stat_desc.static_tree,f=e.stat_desc.has_stree,l=e.stat_desc.extra_bits,c=e.stat_desc.extra_base,u=e.stat_desc.max_length,w=0;for(r=0;r<=15;r++)t.bl_count[r]=0;for(h[2*t.heap[t.heap_max]+1]=0,a=t.heap_max+1;a<573;a++)(r=h[2*h[2*(i=t.heap[a])+1]+1]+1)>u&&(r=u,w++),h[2*i+1]=r,i>d||(t.bl_count[r]++,s=0,i>=c&&(s=l[i-c]),o=h[2*i],t.opt_len+=o*(r+s),f&&(t.static_len+=o*(_[2*i+1]+s)));if(0!==w){do{for(r=u-1;0===t.bl_count[r];)r--;t.bl_count[r]--,t.bl_count[r+1]+=2,t.bl_count[u]--,w-=2}while(w>0);for(r=u;0!==r;r--)for(n=t.bl_count[r];0!==n;)(i=t.heap[--a])>d||(h[2*i+1]!==r&&(t.opt_len+=(r-h[2*i+1])*h[2*i],h[2*i+1]=r),n--)}}(t,e),w(e.dyn_tree,e.max_code,t.bl_count)}}function b(t,e,a){return t.pending_buf[t.d_buf+2*a]=e>>>8&255,t.pending_buf[t.d_buf+2*a+1]=255&e,t.pending_buf[t.l_buf+a]=255&t,t.last_lit++,0===e?t.dyn_ltree[2*t]++:(t.matches++,e--,t.dyn_ltree[2*(256+1+(e<256?0:e<512?1:e<1024?2:e<2048?3:e<4096?4:e<8192?5:e<16384?6:e<32768?7:8))+256]++,t.dyn_dtree[2*function(t){return t<512?n[t]:n[256+(t>>>7)]}(e)]++),t.last_lit===t.lit_bufsize-1}function g(t,e){t.msg=j[e];return e}function p(t){return(t<<1)-(t>4?9:0)}function k(t){for(var e=t.length;--e>=0;)t[e]=0}function v(t){var e=t.state,a=e.pending;a>t.avail_out&&(a=t.avail_out),0!==a&&(function(t,e,a,i,n){for(var r=0;r<n;r++)t[a+r]=e[i+r]}(t.output,e.pending_buf,t.next_out,e.pending_out,a),t.next_out+=a,e.pending_out+=a,t.total_out+=a,t.avail_out-=a,e.pending-=a,0===e.pending&&(e.pending_out=0))}function y(t,e){c(t,t.l_desc,t.d_desc)}function x(t){var e,a,i,n;for(e=0;e<30;e++)t.dyn_dtree[2*e]=0,t.dyn_dtree[2*e+1]=0;for(e=0;e<19;e++)t.bl_tree[2*e]=0,t.bl_tree[2*e+1]=0;for(e=0;e<286;e++)t.dyn_ltree[2*e]=0,t.dyn_ltree[2*e+1]=0;t.bl_tree[32]=1,t.opt_len=t.static_len=0,t.last_lit=t.matches=0,t.last_eob_len=8}function z(t){t.bi_valid>8?function(t,e){t.pending_buf[t.pending++]=255&e,t.pending_buf[t.pending++]=e>>>8&255}(t,t.bi_buf):t.bi_valid>0&&(t.pending_buf[t.pending++]=t.bi_buf),t.bi_buf=0,t.bi_valid=0}function A(t,e,a,i){z(t),i&&(function(t,e){t.pending_buf[t.pending++]=e,t.pending_buf[t.pending++]=e>>>8,t.pending_buf[t.pending++]=~e,t.pending_buf[t.pending++]=~e>>>8}(t,a),function(t,e,a){var i;for(i=0;i<a;i++)t.pending_buf[t.pending++]=e[i]}(t,e,a))}function E(t,e,a,i){var n,r,s=0;t.level>0?(2===t.strm.data_type&&(t.strm.data_type=function(t){var e,a=4093624447;for(e=0;e<=31;e++,a>>>=1)if(1&a&&0!==t.dyn_ltree[2*e])return 0;if(0!==t.dyn_ltree[18]||0!==t.dyn_ltree[20]||0!==t.dyn_ltree[26])return 1;for(e=32;e<256;e++)if(0!==t.dyn_ltree[2*e])return 1;return 0}(t)),u(t,t.l_desc),u(t,t.d_desc),s=function(t){var e;for(function(t,e){var a,i,n,r=0;for(a=0;a<19;a++)t.bl_count[a]=0;for(t.heap[t.heap_max].dl=0,i=t.heap_max+1;i<573;i++)(n=t.heap[i]).dl=t.heap[n.dad].dl+1,n.dl>7&&(n.dl=7,r++),t.bl_count[n.dl]++,n.fc<=18||(t.opt_len+=n.dl*n.freq,t.static_len+=n.freq*t.static_tree[n.fc].dl);if(0!==r){do{for(n=7-1;0===t.bl_count[n];)n--;t.bl_count[n]--,t.bl_count[n+1]+=2,t.bl_count[7]--,r-=2}while(r>0);for(n=7;0!==n;n--)for(t.bl_count[n];0!==t.bl_count[n];)(i=t.heap[--i]).fc>18||i.dl!==n&&(t.opt_len+=(n-i.dl)*i.freq,i.dl=n),t.bl_count[n]--;var s=0;for(n=0;n<=18;n++)0!==t.freq[n]&&(t.heap[++s].fc=n,t.heap[s].freq=t.freq[n],t.heap[s].dad=t.heap[s].dl=0);for(t.heap_len=s,t.heap_max=s,i=s>>>1;i>=1;i--)l(t,t.heap,i);var o=18+1;do{i=t.heap[1],t.heap[1]=t.heap[t.heap_len--],l(t,t.heap,1),n=t.heap[1],t.heap[--t.heap_max]=i,t.heap[--t.heap_max]=n,t.heap[1].freq=i.freq+n.freq,t.heap[1].dad=t.heap[1].dl=0,i.dad=n.dad=t.heap[1],t.heap[1].fc=o++,l(t,t.heap,1)}while(t.heap_len>=2);t.heap[--t.heap_max]=t.heap[1],function(t,e){var a,i,n,r,s,o,h=e.dyn_tree,d=e.max_code,_=e.stat_desc.static_tree,f=e.stat_desc.has_stree,l=e.stat_desc.extra_bits,c=e.stat_desc.extra_base,u=e.stat_desc.max_length,w=0;for(r=0;r<=15;r++)t.bl_count[r]=0;for(h[2*t.heap[t.heap_max]+1]=0,a=t.heap_max+1;a<573;a++)(r=h[2*h[2*(i=t.heap[a])+
